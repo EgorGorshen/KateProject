@@ -3,9 +3,7 @@ import json
 
 
 def colored_text(text, color, bold=False, underline=False):
-    """
-    Функция для раскраски текста
-    """
+    """ Функция для раскраски текста """
     style = []
     if bold:
         style.append(Style.BRIGHT)
@@ -15,9 +13,7 @@ def colored_text(text, color, bold=False, underline=False):
 
 
 class Exercise:
-    """
-    Класс упражнения
-    """
+    """ Класс упражнения """
     def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[int], scores: int) -> None:
         # Инициализатор класса. Принимает название упражнения, его условие, варианты ответов, 
         # правильный(е) вариант(ы) ответа, максимально возможные баллы за упражнение.
@@ -61,19 +57,13 @@ class Exercise:
 
 
 def save_res(res: list[Exercise]):
-    """
-    Загрузска файла с логами
-    """
+    """ Загрузска файла с логами """
     returner = {}
     sum_of_scores = 0
     max_sum_of_scores = 0
     for i in res:
-        returner[i.name] = {
-            "Баллы": i.scores,
-            "Ответы": i.user_ansers
-        }
-        sum_of_scores += i.scores
-        max_sum_of_scores += i.max_scores
+        returner[i.name] = { "Баллы": i.scores, "Ответы": i.user_ansers}
+        sum_of_scores, max_sum_of_scores = sum_of_scores + i.scores, max_sum_of_scores + i.max_scores
     if sum_of_scores / max_sum_of_scores < 0.4:
         returner['Оценка'] = "Не удовлетварительно"
     elif sum_of_scores / max_sum_of_scores < 0.6:
@@ -97,41 +87,26 @@ class Test:
     def _get_exercise(self) -> list[Exercise]:
         with open(self.file_path) as file:
             exs = json.loads(file.read())  # Чтение данных из файла
-        res = []
-        for ex in exs:  # Создание объектов Exercise для каждого задания
-            res.append(
-                Exercise(
-                    ex['name'],  # Название задания
-                    ex['text'],  # Текст задания
-                    ex['ansers'],  # Варианты ответов
-                    set(ex['right']),  # Множество правильных ответов
-                    ex['scores']  # Количество баллов за задание
-                )
-            )
-        return res
+        # Создание объектов Exercise для каждого задания
+        return [Exercise(ex['name'], ex['text'], ex['ansers'], set(ex['right']), ex['scores']) for ex in exs]
 
     def start_test(self):
         for exercise in self.exercises:  # Проход по каждому заданию и его решение
             exercise.print_exercise()  # Вывод текста задания
             exercise.get_anser()  # Получение ответа пользователя
-            print()
-            print()
+            print('\n')
             self.scores[exercise] = exercise.scores  # Сохранение результатов за задание
+        return self
 
     def print_res(self):
         print('-' * 60)
         res = sum(i.scores for i in self.scores)  # Вычисление общего количества набранных баллов
         for i in self.exercises:  # Вывод результатов за каждое задание
-            print(
-                "{:<30}".format(colored_text(i.name + ' ' + str(i.scores), Fore.MAGENTA, bold=True)), 
-                colored_text('#' * int(50 * i.scores / i.max_scores) + '-' * int(50 - 50 * i.scores / i.max_scores), Fore.YELLOW))  # Вывод графического представления результата
-        print()
-        print("{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)),
-              colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))  # Вывод итогового результата
-        
+            print("{:<30}".format(colored_text(i.name + ' ' + str(i.scores), Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * i.scores / i.max_scores) + '-' * int(50 - 50 * i.scores / i.max_scores), Fore.YELLOW))  # Вывод графического представления результата
+        print("\n{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))  # Вывод итогового результата
         save_res(self.exercises)
+        return self
 
 
-test = Test("./test.json")
-test.start_test()
-test.print_res()
+print(open('./hi.txt', 'r').read())
+Test("./test.json").start_test().print_res()
