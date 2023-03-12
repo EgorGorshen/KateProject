@@ -14,31 +14,20 @@ def colored_text(text, color, bold=False, underline=False):
     return f"{color}{''.join(style)}{text}{Style.RESET_ALL}"
 
 
-def save_res(res: dict):
-    """
-    Загрузска файла с логами
-    """
-    res['result'] = sum(res.values())
-    with open('./log.json', 'r') as file:
-        f = json.loads(file.read())
-        f.append(res)
-    with open('./log.json', 'w') as file:
-        json.dump(f, file, ensure_ascii=False, indent=4)
-
-
 class Exercise:
     """
     Класс упражнения
     """
-    def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[str], scores: int) -> None:
+    def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[int], scores: int) -> None:
         # Инициализатор класса. Принимает название упражнения, его условие, варианты ответов, 
         # правильный(е) вариант(ы) ответа, максимально возможные баллы за упражнение.
         self.name: str = name
         self.condition: str = condition
         self.ansers: list[str] = anser
-        self.right: set[str] = right_indexs
+        self.right: set[int] = right_indexs
         self.max_scores: float = scores
         self.scores: float = scores
+        self.user_ansers: list[list[int]] = []
 
     def print_exercise(self):
         # Метод для вывода условия и вариантов ответов на экран.
@@ -57,6 +46,7 @@ class Exercise:
             print()
             print(colored_text(f'Введите {"вариант" if len(self.right) == 1 else "варианты"} ответа: ', Fore.CYAN, bold=True), end='')
             ansers = set(map(int, input()))
+            self.user_ansers.append(sorted(list(ansers)))
             if ansers == self.right:
                 print(colored_text('Ваш ответ правильный', Fore.GREEN, bold=True))
                 return
@@ -68,6 +58,33 @@ class Exercise:
                 return
             
             print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
+
+
+def save_res(res: list[Exercise]):
+    """
+    Загрузска файла с логами
+    """
+    returner = {}
+    sum_of_scores = 0
+    max_sum_of_scores = 0
+    for i in res:
+        returner[i.name] = {
+            "Баллы": i.scores,
+            "Ответы": i.user_ansers
+        }
+        sum_of_scores += i.scores
+        max_sum_of_scores += i.max_scores
+    if sum_of_scores / max_sum_of_scores < 0.4:
+        returner['Оценка'] = "Не удовлетварительно"
+    elif sum_of_scores / max_sum_of_scores < 0.6:
+        returner['Оценка'] = "Удовлетварительно"
+    elif sum_of_scores / max_sum_of_scores < 0.8:
+        returner['Оценка'] = "Хорошо"
+    else:
+        returner['Оценка'] = "Отлично"
+
+    with open('./log.json', 'w') as file:
+        json.dump(returner, file, ensure_ascii=False, indent=4)
 
 
 class Test:
@@ -111,8 +128,8 @@ class Test:
         print()
         print("{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)),
               colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))  # Вывод итогового результата
-
-        save_res({i.name: i.scores for i in self.exercises})
+        
+        save_res(self.exercises)
 
 
 test = Test("./test.json")
