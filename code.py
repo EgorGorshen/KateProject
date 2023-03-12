@@ -104,7 +104,6 @@ class Test:
         res = sum(i.scores for i in self.scores)  # Вычисление общего количества набранных баллов
         print(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True))
         save_res(self.exercises)
-        return self
 
 
 print(open('./hi.txt', 'r').read())
