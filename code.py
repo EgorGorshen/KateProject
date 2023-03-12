@@ -102,9 +102,7 @@ class Test:
     def print_res(self):
         print('-' * 60)
         res = sum(i.scores for i in self.scores)  # Вычисление общего количества набранных баллов
-        for i in self.exercises:  # Вывод результатов за каждое задание
-            print("{:<30}".format(colored_text(i.name + ' ' + str(i.scores), Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * i.scores / i.max_scores) + '-' * int(50 - 50 * i.scores / i.max_scores), Fore.YELLOW))  # Вывод графического представления результата
-        print("\n{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))  # Вывод итогового результата
+        print(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True))
         save_res(self.exercises)
         return self
 
