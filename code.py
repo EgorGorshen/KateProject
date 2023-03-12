@@ -1,5 +1,6 @@
 from colorama import Fore, Style
 import json
+import time
 
 
 def colored_text(text, color, bold=False, underline=False):
@@ -12,6 +13,17 @@ def colored_text(text, color, bold=False, underline=False):
     if underline:
         style.append('\033[4m')
     return f"{color}{''.join(style)}{text}{Style.RESET_ALL}"
+
+
+def save_res(res: dict):
+    """
+    Загрузска файла с логами
+    """
+    with open('./log.json', 'r') as file:
+        f = json.loads(file.read())
+        f.append(res)
+    with open('./log.json', 'w') as file:
+        json.dump(f, file, ensure_ascii=False, indent=4)
 
 
 class Exercise:
@@ -35,17 +47,21 @@ class Exercise:
 
     def get_anser(self):
         ansers = set()
-        while self.scores:
+        while True:
             print()
             print(colored_text(f'Введите {"вариант" if len(self.right) == 1 else "варианты"} ответа: ', Fore.CYAN, bold=True), end='')
             ansers = set(map(int, input()))
             if ansers == self.right:
                 print(colored_text('Ваш ответ правильный', Fore.GREEN, bold=True))
                 return
-
-            print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
+            
             self.scores -= 0.5
-        print(colored_text('Правильный ответ: ', Fore.YELLOW, bold=True) + str(', '.join(sorted(list(map(str, self.right))))))
+            
+            if self.scores == 0:
+                print(colored_text('Правильный ответ: ', Fore.YELLOW, bold=True) + str(', '.join(sorted(list(map(str, self.right))))))
+                return
+            
+            print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
 
 
 class Test:
@@ -82,7 +98,6 @@ class Test:
 
     def print_res(self):
         print('-' * 60)
-        # length = max(len(i.name) for i in self.exercises)
         res = sum(i.scores for i in self.scores)
         for i in self.exercises:
             print(
@@ -91,6 +106,8 @@ class Test:
         print()
         print("{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)),
               colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))
+
+        save_res({i.name: i.scores for i in self.exercises})
 
 
 test = Test("./test.json")
