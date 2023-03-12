@@ -18,6 +18,7 @@ def save_res(res: dict):
     """
     Загрузска файла с логами
     """
+    res['result'] = sum(res.values())
     with open('./log.json', 'r') as file:
         f = json.loads(file.read())
         f.append(res)
