@@ -14,7 +14,7 @@ def colored_text(text, color, bold=False, underline=False):
 
 class Exercise:
     """ Класс упражнения """
-    def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[int], scores: int) -> None:
+    def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[int], scores: int):
         # Инициализатор класса. Принимает название упражнения, его условие, варианты ответов, 
         # правильный(е) вариант(ы) ответа, максимально возможные баллы за упражнение.
         self.name: str = name
@@ -24,6 +24,7 @@ class Exercise:
         self.max_scores: float = scores
         self.scores: float = scores
         self.user_ansers: list[list[int]] = []
+
 
     def print_exercise(self):
         # Метод для вывода условия и вариантов ответов на экран.
@@ -46,14 +47,14 @@ class Exercise:
             if ansers == self.right:
                 print(colored_text('Ваш ответ правильный', Fore.GREEN, bold=True))
                 return
-            
-            self.scores -= 0.5
+            else:
+                self.scores -= 0.5
             
             if self.scores == 0:
                 print(colored_text('Правильный ответ: ', Fore.YELLOW, bold=True) + str(', '.join(sorted(list(map(str, self.right))))))
                 return
-            
-            print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
+            else:
+                print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
 
 
 def save_res(res: list[Exercise]):
@@ -78,13 +79,13 @@ def save_res(res: list[Exercise]):
 
 
 class Test:
-    def __init__(self, file_path) -> None:
+    def __init__(self, file_path):
         self.file_path: str = file_path
         self.exercises: list[Exercise] = self._get_exercise()  # Получение списка заданий из файла
         self.max_scores = sum(i.scores for i in self.exercises)  # Вычисление максимального количества баллов за тест
         self.scores: dict[Exercise, float] = dict()  # Словарь для хранения результатов за каждое задание
 
-    def _get_exercise(self) -> list[Exercise]:
+    def _get_exercise(self):
         with open(self.file_path) as file:
             exs = json.loads(file.read())  # Чтение данных из файла
         # Создание объектов Exercise для каждого задания
