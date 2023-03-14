@@ -12,64 +12,47 @@ def colored_text(text, color, bold=False, underline=False):
     return f"{color}{''.join(style)}{text}{Style.RESET_ALL}"
 
 
-class Exercise:
-    """ Класс упражнения """
-    def __init__(self, name: str, condition: str, anser: list[str], right_indexs: set[int], scores: int):
-        # Инициализатор класса. Принимает название упражнения, его условие, варианты ответов, 
-        # правильный(е) вариант(ы) ответа, максимально возможные баллы за упражнение.
-        self.name: str = name
-        self.condition: str = condition
-        self.ansers: list[str] = anser
-        self.right: set[int] = right_indexs
-        self.max_scores: float = scores
-        self.scores: float = scores
-        self.user_ansers: list[list[int]] = []
+def conduct_exercise(name: str, condition: str, ansers: list[str], right_indexs: set[int], scores: float):
+    
+    user_ansers: list[list[int]] = []
+
+    ######################### Вывод условия упражнения ###########################
+    res = colored_text(name, Fore.MAGENTA, bold=True, underline=True)
+    res += '\n\n' + colored_text(condition, Fore.YELLOW, bold=True) + '\n'
+    for i in enumerate(ansers):
+        res += '\n' + str(i[0] + 1) + ': ' + i[1]
+    print(res)
+
+    ############################### Приём ответа ##################################
+    u_ansers = set()
+    while True:
+        print()
+        print(colored_text(f'Введите {"вариант" if len(right_indexs) == 1 else "варианты"} ответа: ', Fore.CYAN, bold=True), end='')
+        u_ansers = set(map(int, list(input())))
+        user_ansers.append(sorted(list(u_ansers)))
+        if u_ansers == right_indexs:
+            print(colored_text('Ваш ответ правильный', Fore.GREEN, bold=True))
+            return user_ansers, scores
+        scores -= 0.5
+        
+        if scores == 0:
+            print(colored_text('Правильный ответ: ', Fore.YELLOW, bold=True) + str(', '.join(sorted(list(map(str, right_indexs))))))
+            return user_ansers, scores
+        print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
 
 
-    def print_exercise(self):
-        # Метод для вывода условия и вариантов ответов на экран.
-        res = colored_text(self.name, Fore.MAGENTA, bold=True, underline=True)
-        res += '\n\n' + colored_text(self.condition, Fore.YELLOW, bold=True) + '\n'
-        for i in enumerate(self.ansers):
-            res += '\n' + str(i[0] + 1) + ': ' + i[1]
-        print(res)
-
-    def get_anser(self):
-        # Метод для получения ответа от пользователя.
-        # Запрашивает ввод пользователем варианта ответа и проверяет его на правильность.
-        # Если ответ неверный, уменьшает количество баллов и запрашивает ввод ответа снова.
-        ansers = set()
-        while True:
-            print()
-            print(colored_text(f'Введите {"вариант" if len(self.right) == 1 else "варианты"} ответа: ', Fore.CYAN, bold=True), end='')
-            ansers = set(map(int, input()))
-            self.user_ansers.append(sorted(list(ansers)))
-            if ansers == self.right:
-                print(colored_text('Ваш ответ правильный', Fore.GREEN, bold=True))
-                return
-            else:
-                self.scores -= 0.5
-            
-            if self.scores == 0:
-                print(colored_text('Правильный ответ: ', Fore.YELLOW, bold=True) + str(', '.join(sorted(list(map(str, self.right))))))
-                return
-            else:
-                print(colored_text("Ваш ответ не правильгый попробуйте снова.", Fore.RED, bold=True))
-
-
-def save_res(res: list[Exercise]):
+def save_res(res: dict, max_scores: float):
     """ Загрузска файла с логами """
     returner = {}
     sum_of_scores = 0
-    max_sum_of_scores = 0
-    for i in res:
-        returner[i.name] = { "Баллы": i.scores, "Ответы": i.user_ansers}
-        sum_of_scores, max_sum_of_scores = sum_of_scores + i.scores, max_sum_of_scores + i.max_scores
-    if sum_of_scores / max_sum_of_scores < 0.4:
+    for i in res.keys():
+        returner[i] = { "Баллы": res[i]['scores'], "Ответы": res[i]['user_ansers']}
+        sum_of_scores += res[i]['scores']
+    if sum_of_scores / max_scores < 0.4:
         returner['Оценка'] = "Не удовлетварительно"
-    elif sum_of_scores / max_sum_of_scores < 0.6:
+    elif sum_of_scores / max_scores < 0.6:
         returner['Оценка'] = "Удовлетварительно"
-    elif sum_of_scores / max_sum_of_scores < 0.8:
+    elif sum_of_scores / max_scores < 0.8:
         returner['Оценка'] = "Хорошо"
     else:
         returner['Оценка'] = "Отлично"
@@ -78,33 +61,30 @@ def save_res(res: list[Exercise]):
         json.dump(returner, file, ensure_ascii=False, indent=4)
 
 
-class Test:
-    def __init__(self, file_path):
-        self.file_path: str = file_path
-        self.exercises: list[Exercise] = self._get_exercise()  # Получение списка заданий из файла
-        self.max_scores = sum(i.scores for i in self.exercises)  # Вычисление максимального количества баллов за тест
-        self.scores: dict[Exercise, float] = dict()  # Словарь для хранения результатов за каждое задание
+def get_exercise(file_path):
+    with open(file_path) as file:
+        exs = json.loads(file.read()) 
+        return [{'name': ex['name'], 'condition': ex['text'], 'ansers': ex['ansers'], 'right_indexs': set(ex['right']), 'scores': ex['scores']} for ex in exs]
 
-    def _get_exercise(self):
-        with open(self.file_path) as file:
-            exs = json.loads(file.read())  # Чтение данных из файла
-        # Создание объектов Exercise для каждого задания
-        return [Exercise(ex['name'], ex['text'], ex['ansers'], set(ex['right']), ex['scores']) for ex in exs]
 
-    def start_test(self):
-        for exercise in self.exercises:  # Проход по каждому заданию и его решение
-            exercise.print_exercise()  # Вывод текста задания
-            exercise.get_anser()  # Получение ответа пользователя
-            print('\n')
-            self.scores[exercise] = exercise.scores  # Сохранение результатов за задание
-        return self
+def test(file_path):
+    exercises = get_exercise(file_path) 
+    max_scores = sum(i['scores'] for i in exercises)
+    scores = dict()
 
-    def print_res(self):
-        print('-' * 60)
-        res = sum(i.scores for i in self.scores)  # Вычисление общего количества набранных баллов
-        print(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True))
-        save_res(self.exercises)
+    for exercise in exercises:  # Проход по каждому заданию и его решение
+        exercise['user_ansers'], exercise['scores'] = conduct_exercise(**exercise)  # Вывод текста задания
+          # Получение ответа пользователя
+        print('\n')
+        scores[exercise['name']] = {'scores': exercise['scores'], 'user_ansers': exercise['user_ansers']}
+
+    print('-' * 60)
+    res = sum(scores[i]['scores'] for i in scores.keys())  # Вычисление общего количества набранных баллов
+    
+    print(colored_text('Результат' + ' ' + str(round(100 * res / max_scores)) + '%', Fore.MAGENTA, bold=True))
+    
+    save_res(scores, max_scores)
 
 
 print(open('./hi.txt', 'r').read())
-Test("./test.json").start_test().print_res()
+test("./test.json")
