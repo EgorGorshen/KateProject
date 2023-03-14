@@ -106,7 +106,6 @@ class Test:
             print("{:<30}".format(colored_text(i.name + ' ' + str(i.scores), Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * i.scores / i.max_scores) + '-' * int(50 - 50 * i.scores / i.max_scores), Fore.YELLOW))  # Вывод графического представления результата
         print("\n{:<30}".format(colored_text('Результат' + ' ' + str(round(100 * res / self.max_scores)) + '%', Fore.MAGENTA, bold=True)), colored_text('#' * int(50 * res / self.max_scores) + '-' * int(50 - 50 * res / self.max_scores), Fore.YELLOW))  # Вывод итогового результата
         save_res(self.exercises)
-        return self
 
 
 print(open('./hi.txt', 'r').read())
