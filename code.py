@@ -71,7 +71,12 @@ def get_exercise(file_path):
     ############################### Получение условия задачи из файла "file_path" ##################################
     with open(file_path) as file:
         exs = json.loads(file.read()) 
-        return [{'name': ex['name'], 'condition': ex['text'], 'ansers': ex['ansers'], 'right_indexs': set(ex['right']), 'scores': ex['scores']} for ex in exs]
+        return [{'name': ex['name'], 
+            'condition': ex['text'], 
+            'ansers': ex['ansers'], 
+            'right_indexs': set(ex['right']), 
+            'scores': ex['scores'], 
+            'explanation': ex['explanation']} for ex in exs]
 
 
 def test(file_path):
