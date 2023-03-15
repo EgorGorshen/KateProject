@@ -62,7 +62,7 @@ def save_res(res: dict, max_scores: float):
         returner['Оценка'] = "Отлично"
 
     ############################### Загрузка файла ##################################
-    with open('./log.json', 'w') as file:
+    with open('log.json', 'w') as file:
         json.dump(returner, file, ensure_ascii=False, indent=4)
 
 
@@ -95,7 +95,45 @@ def test(file_path):
     save_res(scores, max_scores)
 
 
+def add_exercise():
+    returner = []
+    adder = {}
+    with open('test.json', 'r') as file:
+        returner = json.loads(file.read())
 
-print(open('./hi.txt', 'r').read()) # Вывод приветственного сообщения
-test("./test.json") # Запуск теста
+    adder['name'] = input('Введите имя: ')
+
+    text = [input('Введите условие (кода закончится, поставьте ";"): ').strip()]
+    while not text[-1].endswith(';'):
+        text.append(input().strip())
+    adder['text'] = ' '.join(text)
+
+    ansers = [input('Введите ответы (кода закончится, поставьте "end"): ').strip()]
+    while ansers[-1] != 'end':
+        ansers.append(input().strip())
+    adder['ansers'] = ansers[:-1]
+
+    explanation = [input('Введите пояснение (кода закончится, поставьте ";"): ').strip()]
+    while not explanation[-1].endswith(';'):
+        explanation.append(input().strip())
+    adder['explanation'] = ' '.join(explanation)
+
+    right = [input('Введите индексы правильных ответов (кода закончится, поставьте "0"): ').strip()]
+    while right[-1] != '0':
+        right.append(input().strip())
+    adder['right'] = list(map(int, right[:-1]))
+
+    adder['scores'] = int(input('Введите количество баллов: ').strip())
+
+    returner.append(adder)
+
+    with open('test.json', 'w') as file:
+        json.dump(returner, file, ensure_ascii=False, indent=4)
+
+
+
+# print(colored_text(open('./hi.txt', 'r').read(), Fore.CYAN)) # Вывод приветственного сообщения
+# test("./test.json") # Запуск теста
+
+add_exercise() # Добавить вопрос
 
